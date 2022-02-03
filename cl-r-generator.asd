@@ -1,4 +1,4 @@
-(asdf:defsystem cl-py-generator
+(asdf:defsystem cl-r-generator
     :version "0"
     :description "Emit R language code"
     :maintainer " <kielhorn.martin@gmail.com>"

@@ -1,1 +1,8 @@
 - https://cran.r-project.org/doc/manuals/r-release/R-lang.pdf
+- x+y can be written as '+'(x+y), the non-standard function name needs
+  to be quoted
+
+- install R on fedora
+#+begin_example
+sudo dnf install R
+#+end_example

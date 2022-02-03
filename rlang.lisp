@@ -1,70 +1,12 @@
-					;(ql:quickload "optima")
-					;(ql:quickload "alexandria")
-
-(in-package :cl-py-generator)
+(in-package :cl-r-generator)
 (setf (readtable-case *readtable*) :invert)
 
-(defparameter *warn-breaking* t)
 (defparameter *file-hashes* (make-hash-table))
-
-(defun write-notebook (&key nb-file nb-code)
-  "write python jupyter notebook"
-  (let ((tmp (format nil "~a.tmp" nb-file)))
-    (with-output-to-file (s tmp :if-exists :supersede
-			    :if-does-not-exist :create)
-      (format s "~a~%"
-	      (jonathan:to-json
-	       `(;; :cells
-		 :|cells|
-		 ,(loop for e in nb-code
-			collect
-			(destructuring-bind (name &rest rest) e
-			  (case name
-			    (`markdown `(:cell_type "markdown"
-						    :metadata :empty
-						    :source
-						    ,(loop for p in rest
-							   collect
-							   (format nil "~a~c" p #\Newline))))
-			    (`python `(:cell_type "code"
-						  :metadata :empty
-						  :execution_count :null
-						  :outputs ()
-						  :source
-						  ,(loop for p in rest
-							 appending
-							 (let ((tempfn "/dev/shm/cell"))
-							   (write-source tempfn p)
-							   (with-open-file (stream (format nil "~a.py" tempfn))
-							     (loop for line = (read-line stream nil)
-								   while line
-								   collect
-								   (format nil "~a~c" line #\Newline)))))))
-			    )))
-		 :|metadata| (:|kernelspec| (:|display_name| "Python 3"
-					      :|language| "python"
-					      :|name| "python3"))
-		 :|nbformat| 4
-		 :|nbformat_minor| 2
-
-		 #+nil
-		 (:metadata (:kernelspec (:display_name "Python 3"
-							:language "python"
-							:name "python3"))
-			    :nbformat 4
-			    :nbformat_minor 2)))))
-    #+nil
-    (sb-ext:run-program "/usr/bin/python3" `("-mjson.tool" ,nb-file))
-    (sb-ext:run-program "/usr/bin/jq" `("-M" "." ,tmp)
-			:output nb-file
-			:if-output-exists :supersede)
-    (delete-file tmp)))
-
 (defun write-source (name code &optional (dir (user-homedir-pathname))
 				 ignore-hash)
-  (let* ((fn (merge-pathnames (format nil "~a.py" name)
+  (let* ((fn (merge-pathnames (format nil "~a.R" name)
 			      dir))
-	 (code-str (emit-py
+	 (code-str (emit-r
 		    :clear-env t
 		    :code code))
 	 (fn-hash (sxhash fn))
@@ -80,13 +22,9 @@
 			   :if-exists :supersede
 			   :if-does-not-exist :create)
 	  (write-sequence code-str s))
-	#+nil
-	(sb-ext:run-program "/usr/bin/autopep8" (list "--max-line-length 80" (namestring fn)))
-	#+nil (sb-ext:run-program "/usr/bin/yapf" (list "-i" (namestring fn)))
+
 	#+nil
 	(progn
-	  ;; python3 -m pip install --user black
-	  ;; should i use --fast option?xs
 	  (sb-ext:run-program "/home/martin/.local/bin/black"
 			      (list "--fast"
 				    (namestring  fn))))))))
@@ -110,28 +48,16 @@
     (substitute #\e #\d (format nil "~,vG" digits a))))
 
 
-					;(print-sufficient-digits-f64 1d0)
-
-
 (defparameter *env-functions* nil)
 (defparameter *env-macros* nil)
 
-#+nil
-(defun dotry (code)
-  `(try (do0
-	 ,code)
-	("Exception as exc"
-	 ,(lprint `(exc))
-	 pass)))
-
-(defun emit-py (&key code (str nil) (clear-env nil) (level 0))
+(defun emit-r (&key code (str nil) (clear-env nil) (level 0))
 					;(format t "emit ~a ~a~%" level code)
   (when clear-env
     (setf *env-functions* nil
 	  *env-macros* nil))
   (flet ((emit (code &optional (dl 0))
-	   (emit-py :code code :clear-env nil :level (+ dl level))))
-    (format nil "emit-py ~a" level)
+	   (emit-r :code code :clear-env nil :level (+ dl level))))
     (if code
 	(if (listp code)
 	    (case (car code)
@@ -218,6 +144,10 @@
 			 (format s "~a" (emit `(do ,@body)))))))
 	      (= (destructuring-bind (a b) (cdr code)
 		   (format nil "~a=~a" (emit a) (emit b))))
+	      (<- (destructuring-bind (a b) (cdr code)
+		    (format nil "~a <- ~a" (emit a) (emit b))))
+	      (-> (destructuring-bind (a b) (cdr code)
+		    (format nil "~a -> ~a" (emit a) (emit b))))
 	      (in (destructuring-bind (a b) (cdr code)
 		    (format nil "(~a in ~a)" (emit a) (emit b))))
 	      (is (destructuring-bind (a b) (cdr code)
@@ -230,7 +160,7 @@
 				      ,@(loop for i below (length args) by 2 collect
 					      (let ((a (elt args i))
 						    (b (elt args (+ 1 i))))
-						`(= ,a ,b))))))))
+						`(<- ,a ,b))))))))
 	      (incf (destructuring-bind (target &optional (val 1)) (cdr code)
 		      (format nil "~a += ~a" (emit target) (emit val))))
 	      (decf (destructuring-bind (target &optional (val 1)) (cdr code)
@@ -268,18 +198,38 @@
 		   (format nil "((~a)/(~a))"
 			   (emit (first args))
 			   (emit (second args)))))
-	      (** (let ((args (cdr code)))
-		    (format nil "((~a)**(~a))"
-			    (emit (first args))
-			    (emit (second args)))))
-	      (// (let ((args (cdr code)))
-		    (format nil "((~a)//(~a))"
-			    (emit (first args))
-			    (emit (second args)))))
-	      (% (let ((args (cdr code)))
-		   (format nil "((~a)%(~a))"
+	      (^ (let ((args (cdr code)))
+		   (format nil "((~a)^(~a))"
 			   (emit (first args))
 			   (emit (second args)))))
+	      (^ (let ((args (cdr code)))
+		   (format nil "((~a)^(~a))"
+			   (emit (first args))
+			   (emit (second args)))))
+	      (%x% (let ((args (cdr code)))
+		     (format nil "((~a)%x%(~a))"
+			     (emit (first args))
+			     (emit (second args)))))
+	      (%% (let ((args (cdr code)))
+		    (format nil "((~a)%%(~a))"
+			    (emit (first args))
+			    (emit (second args)))))
+	      (%/% (let ((args (cdr code)))
+		     (format nil "((~a)%/%(~a))"
+			     (emit (first args))
+			     (emit (second args)))))
+	      (%*% (let ((args (cdr code)))
+		     (format nil "((~a)%*%(~a))"
+			     (emit (first args))
+			     (emit (second args)))))
+	      (%o% (let ((args (cdr code)))
+		     (format nil "((~a)%o%(~a))"
+			     (emit (first args))
+			     (emit (second args)))))
+	      (%in% (let ((args (cdr code)))
+	              (format nil "((~a)%in%(~a))"
+			      (emit (first args))
+			      (emit (second args)))))
 	      (and (let ((args (cdr code)))
 		     (format nil "(~{(~a)~^ and ~})" (mapcar #'emit args))))
 	      (& (let ((args (cdr code)))
@@ -330,26 +280,26 @@
 
 	      (if (destructuring-bind (condition true-statement &optional false-statement) (cdr code)
 		    (with-output-to-string (s)
-		      (format s "if ( ~a ):~%~a"
+		      (format s "if ( ~a )~%~a"
 			      (emit condition)
 			      (emit `(do ,true-statement)))
 		      (when false-statement
-			(format s "~&~a:~%~a"
+			(format s "~&~a~%~a"
 				(emit `(indent "else"))
 				(emit `(do ,false-statement)))))))
 	      (cond (destructuring-bind (&rest clauses) (cdr code)
-		      ;; if <cond1> : <code1> elif <cond2> : <code2> else <code3>
+		      ;; if <cond1> : <code1> else if <cond2> : <code2> else <code3>
 		      (with-output-to-string (s)
 			(loop for clause in clauses and i from 0
 			      do
 			      (destructuring-bind (condition &rest statements) clause
-				(format s "~&~a:~%~a"
+				(format s "~&~a~%~a"
 					(cond ((and (eq condition 't) (eq i 0))
 					       ;; this special case may happen when you comment out all but the last cond clauses
 					       (format nil "if ( True )"))
 					      ((eq i 0) (format nil "if ( ~a )" (emit condition)))
 					      ((eq condition 't) (emit `(indent "else")))
-					      (t (emit `(indent ,(format nil "elif ( ~a )" (emit condition)))))
+					      (t (emit `(indent ,(format nil "else if ( ~a )" (emit condition)))))
 					      )
 					(emit `(do ,@statements)))))
 			)))
