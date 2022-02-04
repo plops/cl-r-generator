@@ -88,6 +88,19 @@
 			    :color (string "gray")
 			    :n.grid 60
 			    :zlim (c -1 2)))
+		  (do0
+		   (comments "interaction smooth effect, constructed so that functions of the form f(Y)+g(X) are excluded from its basis")
+		   (setf tm1 (gam (~ medFPQ (+ (s Y :k 10 :bs (string "cr"))
+					       (s X :k 10 :bs (string "cr"))
+					       (ti X Y :k 10)))
+				  :data brain
+				  :family (Gamma :link log)))
+		   (AIC m2 tm1)
+		   (comments "note that penalty structure is different for m2 and tm1")
+		   (summary tm1)
+		   (anova tm1)
+		   (comments "small p-value for ti indicates that ti is significantly non zero and interaction is needed")
+		   )
 
 
 		  )))
