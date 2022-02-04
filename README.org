@@ -52,3 +52,7 @@ Install system packages as root...
   Verifying        : R-CRAN-rpart-4.1.16-1.fc35.copr3251535.x86_64                                                                   8/9 
   Verifying        : R-CRAN-spatial-7.3.14-1.fc35.copr2848010.x86_64   
 #+end_example
+- undo the previous step https://cran.r-project.org/bin/linux/fedora/
+  #+begin_example
+CoprManager::remove_copr("gamair")
+  #+end_example

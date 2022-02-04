@@ -25,18 +25,18 @@
 		`(do0
 		  (comments "Simon Wood Generalized Additive Models, Ch7 GAMs in Practice, p. 325")
 		  #+nil (do0 (library mgcv)
-		       (library MASS)
-		       (setf sm (aref (smoothCon (s times :k 10)
-						 :data mcycle :knots NULL)
-				      (list 1))
-			     beta (coef (lm (~ mcycle$accel (- sm$X 1)))))
+			     (library MASS)
+			     (setf sm (aref (smoothCon (s times :k 10)
+						       :data mcycle :knots NULL)
+					    (list 1))
+				   beta (coef (lm (~ mcycle$accel (- sm$X 1)))))
 
-		       ,(show "cycle"
-			      `(do0
-				(with mcycle (plot times accel))
-				(do0 (setf times (seq 0 60 :length 200)
-					   Xp (PredictMat sm (data.frame :times times)))
-				     (lines times (%*% Xp beta))))))
+			     ,(show "cycle"
+				    `(do0
+				      (with mcycle (plot times accel))
+				      (do0 (setf times (seq 0 60 :length 200)
+						 Xp (PredictMat sm (data.frame :times times)))
+					   (lines times (%*% Xp beta))))))
 		  (do0 (library mgcv)
 		       (library gamair)
 		       (setf sm (aref (smoothCon (s times :k 10)
