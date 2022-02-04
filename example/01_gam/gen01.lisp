@@ -39,17 +39,56 @@
 					   (lines times (%*% Xp beta))))))
 		  (do0 (library mgcv)
 		       (library gamair)
-		       (setf sm (aref (smoothCon (s times :k 10)
-						 :data mcycle :knots NULL)
-				      (list 1))
-			     beta (coef (lm (~ mcycle$accel (- sm$X 1)))))
+		       (data brain)
+		       (setf brain (aref brain (< 5e-3 brain$medFPQ) ""))
+		       )
+		  (do0
+		   (do0 (comments "gaussian model is insufficient:")
+			(setf m0 (gam (~ medFPQ (s Y X :k 100))
+				      :data brain))
+			(gam.check m0)
+			(comments "plots show that variance increases with mean"))
+		   (do0
+		    (comments "fit beta to the variance var(y_i) propto mu_i^beta")
+		    (setf e (residuals m0)
+			  fv (fitted m0))
+		    (lm (~ (log (^ e 2))
+			   (log fv)))
+		    (comments "beta is around 2, i.e variance increases with the square of the mean."
+			      "suggests gamma distribution (with link log to ensure predicted FPQ values are positive)"
+			      "- log transform (extreme)"
+			      "- or 4th root transform (less extreme)"
+			      )))
+		  (do0
+		   (setf m1 (gam (~ (^ medFPQ .25)
+				    (s Y X :k 100))
+				 :data brain))
+		   (gam.check m1))
+		  (do0
+		   (setf m1 (gam (~ (^ medFPQ .25)
+				    (s Y X :k 100))
+				 :data brain))
+		   (gam.check m1))
+		  (do0
+		   (setf m2 (gam (~ medFPQ (s Y X :k 100))
+				 :data brain
+				 :family (Gamma :link log)))
+		   (gam.check m2))
+		  (do0
+		   (comments "biasedness on different scales, m1 underestimates")
+		   ,@(loop for e in `((^ (fitted m1) 4)
+				      (fitted m2)
+				      brain$medFPQ)
+			   collect
+			   `(mean ,e)))
+		  (do0
+		   (comments "look more at m2")
+		   (vis.gam m2 :plot.type (string "contour")
+			    :too.far .03
+			    :color (string "gray")
+			    :n.grid 60
+			    :zlim (c -1 2)))
 
-		       ,(show "cycle"
-			      `(do0
-				(with mcycle (plot times accel))
-				(do0 (setf times (seq 0 60 :length 200)
-					   Xp (PredictMat sm (data.frame :times times)))
-				     (lines times (%*% Xp beta))))))
 
 		  )))
 

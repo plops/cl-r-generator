@@ -4,7 +4,7 @@
 
 - install R on fedora
 #+begin_example
-sudo dnf install R
+sudo dnf install R atlas rstudio-desktop
 sudo dnf install 'dnf-command(copr)'
 sudo dnf copr enable iucar/cran
 sudo dnf install R-CoprManager
