@@ -5,4 +5,50 @@
 - install R on fedora
 #+begin_example
 sudo dnf install R
+sudo dnf install 'dnf-command(copr)'
+sudo dnf copr enable iucar/cran
+sudo dnf install R-CoprManager
+#+end_example
+- install R package from within R
+#+begin_example
+install.packages("gamair")
+update.packages(ask=FALSE)
+
+# output:
+Install system packages as root...
+R-CRAN-gamair-1.0.2-1.fc35.copr2845908.noarch.rpm                                                        1.6 MB/s | 1.8 MB     00:01    
+  Preparing        :                                                                                                                 1/1 
+  Installing       : R-CRAN-gamair-1.0.2-1.fc35.copr2845908.noarch                                                                   1/1 
+  Verifying        : R-CRAN-gamair-1.0.2-1.fc35.copr2845908.noarch                                                                   1/1 
+--- Please select a CRAN mirror for use in this session ---
+Install system packages as root...
+(1/9): R-CRAN-class-7.3.19-1.fc35.copr2850239.x86_64.rpm                                                 144 kB/s | 106 kB     00:00    
+(2/9): R-CRAN-foreign-0.8.81-1.fc35.copr2848004.x86_64.rpm                                               332 kB/s | 269 kB     00:00    
+(3/9): R-CRAN-nlme-3.1.153-1.fc35.copr2850241.x86_64.rpm                                                 2.5 MB/s | 2.4 MB     00:00    
+(4/9): R-CRAN-spatial-7.3.14-1.fc35.copr2848010.x86_64.rpm                                               346 kB/s | 155 kB     00:00    
+(5/9): R-CRAN-rpart-4.1.16-1.fc35.copr3251535.x86_64.rpm                                                 3.2 MB/s | 927 kB     00:00    
+(6/9): R-CRAN-nnet-7.3.16-1.fc35.copr2848008.x86_64.rpm                                                  496 kB/s | 130 kB     00:00    
+(7/9): R-CRAN-MASS-7.3.54-1.fc35.copr2848007.x86_64.rpm                                                  1.6 MB/s | 1.2 MB     00:00    
+(8/9): R-CRAN-Matrix-1.4.0-1.fc35.copr3014769.x86_64.rpm                                                 5.4 MB/s | 4.6 MB     00:00    
+(9/9): R-CRAN-lattice-0.20.45-1.fc35.copr2848006.x86_64.rpm                                              1.9 MB/s | 1.2 MB     00:00    
+  Preparing        :                                                                                                                 1/1 
+  Installing       : R-CRAN-lattice-0.20.45-1.fc35.copr2848006.x86_64                                                                1/9 
+  Installing       : R-CRAN-MASS-7.3.54-1.fc35.copr2848007.x86_64                                                                    2/9 
+  Installing       : R-CRAN-class-7.3.19-1.fc35.copr2850239.x86_64                                                                   3/9 
+  Installing       : R-CRAN-Matrix-1.4.0-1.fc35.copr3014769.x86_64                                                                   4/9 
+  Installing       : R-CRAN-nlme-3.1.153-1.fc35.copr2850241.x86_64                                                                   5/9 
+  Installing       : R-CRAN-spatial-7.3.14-1.fc35.copr2848010.x86_64                                                                 6/9 
+  Installing       : R-CRAN-rpart-4.1.16-1.fc35.copr3251535.x86_64                                                                   7/9 
+  Installing       : R-CRAN-nnet-7.3.16-1.fc35.copr2848008.x86_64                                                                    8/9 
+  Installing       : R-CRAN-foreign-0.8.81-1.fc35.copr2848004.x86_64                                                                 9/9 
+  Running scriptlet: R-CRAN-foreign-0.8.81-1.fc35.copr2848004.x86_64                                                                 9/9 
+  Verifying        : R-CRAN-MASS-7.3.54-1.fc35.copr2848007.x86_64                                                                    1/9 
+  Verifying        : R-CRAN-Matrix-1.4.0-1.fc35.copr3014769.x86_64                                                                   2/9 
+  Verifying        : R-CRAN-class-7.3.19-1.fc35.copr2850239.x86_64                                                                   3/9 
+  Verifying        : R-CRAN-foreign-0.8.81-1.fc35.copr2848004.x86_64                                                                 4/9 
+  Verifying        : R-CRAN-lattice-0.20.45-1.fc35.copr2848006.x86_64                                                                5/9 
+  Verifying        : R-CRAN-nlme-3.1.153-1.fc35.copr2850241.x86_64                                                                   6/9 
+  Verifying        : R-CRAN-nnet-7.3.16-1.fc35.copr2848008.x86_64                                                                    7/9 
+  Verifying        : R-CRAN-rpart-4.1.16-1.fc35.copr3251535.x86_64                                                                   8/9 
+  Verifying        : R-CRAN-spatial-7.3.14-1.fc35.copr2848010.x86_64   
 #+end_example

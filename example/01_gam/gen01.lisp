@@ -16,28 +16,41 @@
   (let ((show-counter 1))
     (defun show (name code)
       (prog1
-       `(do0
-	 (png (string ,(format nil "~2,'0d_~a.png" show-counter name)))
-	 ,code
-	 (dev.off))
+	  `(do0
+	    (png (string ,(format nil "~2,'0d_~a.png" show-counter name)))
+	    ,code
+	    (dev.off))
 	(incf show-counter))))
   (write-source (format nil "~a/source/run01" *path*)
 		`(do0
 		  (comments "Simon Wood Generalized Additive Models, Ch7 GAMs in Practice, p. 325")
-		  (library mgcv)
-		  (library MASS)
-		  (setf sm (aref (smoothCon (s times :k 10)
-					    :data mcycle :knots NULL)
-				 (list 1))
-			beta (coef (lm (~ mcycle$accel (- sm$X 1)))))
-		  
-		  ,(show "cycle"
-			 `(do0
-			   (with mcycle (plot times accel))
-			   (do0 (setf times (seq 0 60 :length 200)
-			     Xp (PredictMat sm (data.frame :times times)))
-		       (lines times (%*% Xp beta)))))
-		  
+		  #+nil (do0 (library mgcv)
+		       (library MASS)
+		       (setf sm (aref (smoothCon (s times :k 10)
+						 :data mcycle :knots NULL)
+				      (list 1))
+			     beta (coef (lm (~ mcycle$accel (- sm$X 1)))))
+
+		       ,(show "cycle"
+			      `(do0
+				(with mcycle (plot times accel))
+				(do0 (setf times (seq 0 60 :length 200)
+					   Xp (PredictMat sm (data.frame :times times)))
+				     (lines times (%*% Xp beta))))))
+		  (do0 (library mgcv)
+		       (library gamair)
+		       (setf sm (aref (smoothCon (s times :k 10)
+						 :data mcycle :knots NULL)
+				      (list 1))
+			     beta (coef (lm (~ mcycle$accel (- sm$X 1)))))
+
+		       ,(show "cycle"
+			      `(do0
+				(with mcycle (plot times accel))
+				(do0 (setf times (seq 0 60 :length 200)
+					   Xp (PredictMat sm (data.frame :times times)))
+				     (lines times (%*% Xp beta))))))
+
 		  )))
 
 
