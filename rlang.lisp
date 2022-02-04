@@ -288,10 +288,10 @@
 	      (for (destructuring-bind ((vs ls) &rest body) (cdr code)
 		     (with-output-to-string (s)
 					;(format s "~a" (emit '(indent)))
-		       (format s "for ~a in ~a:~%"
+		       (format s "for (~a in ~a)~%"
 			       (emit vs)
 			       (emit ls))
-		       (format s "~a" (emit `(do ,@body))))))
+		       (format s "~a" (emit `(do-curly ,@body))))))
 	      (for-generator
 	       (destructuring-bind ((vs ls) expr) (cdr code)
 		 (format nil "~a for ~a in ~a"
