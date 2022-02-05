@@ -14,10 +14,14 @@
   (defparameter *example-subdir* "example/01_gam")
   (defparameter *path* (format nil "~a/~a" *repo-dir-on-host* *example-subdir*))
   (let ((show-counter 1))
-    (defun show (name code)
+    (defun show (name code &key width height)
       (prog1
 	  `(do0
-	    (png (string ,(format nil "~2,'0d_~a.png" show-counter name)))
+	    (png (string ,(format nil "~2,'0d_~a.png" show-counter name))
+		 ,@(when width
+		     `(:width ,width))
+		 ,@(when height
+		     `(:height ,height)))
 	    ,code
 	    (dev.off))
 	(incf show-counter))))
@@ -117,23 +121,28 @@
 					      "V    .. generalized cross validation score"
 					      "influence$hat .. vector containing diagonal of the hat matrix for regression (leave-one-out deletion) diagnostics"))
 			       (do0
-				(plot rho V :type (string "l")
-				      :xlab (expression (log lambda))
-				      :main (string "generalized cross validation score"))
-				(grid)
+
 				(do0
 				 (comments "plot with optimal lambda")
 				 (setf sp (exp (aref rho (== V (min V))))
 				       b (prs.fit wear size sj sp)
-				       Xp (tf.X s sj)
-				       )
+				       Xp (tf.X s sj))
 				 ,(show (format nil "optimal_GCV_knots~3,'0d" number-knots)
 					`(do0
+					  (par :mfrow (c 1 2))
+					  (do0 (plot rho V :type (string "l")
+						     :xlab (expression (log lambda))
+						     :main (string "generalized cross validation score"))
+					       (abline :v (log sp))
+					       (grid))
 					  (plot size wear :main (sprintf (string  "GCV optimal fit #knots=%d lambda=%8.4g")
 									 (length sj)
 									 sp))
 					  (lines s (%*% Xp (coef b)))
-					  (grid))))
+					  (grid))
+					:width 800
+					:height 300
+					))
 				)))))
 		   ))))
 
