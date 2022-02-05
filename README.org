@@ -1,6 +1,11 @@
 - https://cran.r-project.org/doc/manuals/r-release/R-lang.pdf
+- https://google.github.io/styleguide/Rguide.html
+  
 - x+y can be written as '+'(x+y), the non-standard function name needs
   to be quoted
+
+- there seems to be some confusion about when to use <- or =, i will
+  just always use <-. i hope that is correct
 
 - install R on fedora
 #+begin_example
