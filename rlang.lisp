@@ -2,6 +2,60 @@
 (setf (readtable-case *readtable*) :invert)
 
 (defparameter *file-hashes* (make-hash-table))
+
+(defun write-notebook (&key nb-file nb-code)
+  "write python jupyter notebook"
+  (let ((tmp (format nil "~a.tmp" nb-file)))
+    (with-output-to-file (s tmp :if-exists :supersede
+				:if-does-not-exist :create)
+      (format s "~a~%"
+	      (jonathan:to-json
+	       `(;; :cells
+		 :|cells|
+		  ,(loop for e in nb-code
+			 collect
+			 (destructuring-bind (name &rest rest) e
+			   (case name
+			     (`markdown `(:cell_type "markdown"
+					  :metadata :empty
+					  :source
+					  ,(loop for p in rest
+						 collect
+						 (format nil "~a~c" p #\Newline))))
+			     (`r `(:cell_type "code"
+					:metadata :empty
+					:execution_count :null
+					:outputs ()
+					:source
+					,(loop for p in rest
+					       appending
+					       (let ((tempfn "/dev/shm/cell"))
+						 (write-source tempfn p)
+						 (with-open-file (stream (format nil "~a.R" tempfn))
+						   (loop for line = (read-line stream nil)
+							 while line
+							 collect
+							 (format nil "~a~c" line #\Newline)))))))
+			     )))
+		  :|metadata| (:|kernelspec| (:|display_name| "R"
+						     :|language| "R"
+						     :|name| "ir"))
+		  :|language_info| (:|codemirror_mode| "r"
+				     :|file_extension| ".r"
+				     :|mimetype| "text/x-r-source"
+				     :|name| "R"
+				     :|pygments_lexer| "r"
+				     :|version| 4.1.3
+				    )
+		  :|nbformat| 4
+		  :|nbformat_minor| 5))))
+    #+nil
+    (sb-ext:run-program "/usr/bin/python3" `("-mjson.tool" ,nb-file))
+    (sb-ext:run-program "/usr/bin/jq" `("-M" "." ,tmp)
+			:output nb-file
+			:if-output-exists :supersede)
+    (delete-file tmp)))
+
 (defun write-source (name code &optional (dir (user-homedir-pathname))
 				 ignore-hash)
   (let* ((fn (merge-pathnames (format nil "~a.R" name)
