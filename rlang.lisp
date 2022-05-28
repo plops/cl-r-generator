@@ -113,7 +113,7 @@
 			  (declare (ignorable req-param opt-param res-param
 					      key-param other-key-p aux-param key-exist-p))
 			  (with-output-to-string (s)
-			    (format s "lambda ~a: ~a"
+			    (format s "function (~a) ~a"
 				    (emit `(ntuple ,@(append req-param
 							     (loop for e in key-param collect
 								   (destructuring-bind ((keyword-name name) init suppliedp)
