@@ -160,3 +160,92 @@ To plot the PTC curve, you can follow the previous steps, but use the
 variance of the mean values instead of the variance of the edge pixel
 values. The conversion gain can be estimated from the slope of the
 PTC.
+
+# Color calibration
+
+Q: Assume we performed the first measurement (of the PTC) for all 3
+color channels of an RGB camera individually. For each color channel
+we know dark offset and conversion gain and convert the camera signal
+in detected photoelectrons. We also have two sequences of 100 images
+each, conaining of a ColorChecker with 24 fields. Each sequence is
+illuminated with a different light source. The ColorChecker is
+illuminated with a uniform D50 and D65 light source. Perform color
+calibration. Use R.
+
+A: To perform color calibration using the two sequences of ColorChecker
+images, you can follow these steps:
+
+    Load the required packages:
+
+```R
+
+library(dplyr)
+library(tidyr)
+library(imager)
+library(colorscience)
+```
+    Import the images and extract the pixel values for each ColorChecker field in each image:
+
+```R
+
+# Read in the images
+d50_images <- load.image("path/to/D50/images/folder/*")
+d65_images <- load.image("path/to/D65/images/folder/*")
+
+# Extract the pixel values for each ColorChecker field in each image
+colorchecker_data <- data.frame()
+for (channel in c("R", "G", "B")) {
+  for (i in 1:24) {
+    field_name <- paste0("ColorChecker_", i, "_", channel)
+    
+    # Extract the pixel values for each field in the D50 images
+    d50_field_values <- array(0, dim = c(nrow(d50_images), 100))
+    for (j in 1:100) {
+      d50_field_values[,j] <- as.array(d50_images[ColorChecker_fields[[i]],,channel,j])
+    }
+    d50_field_means <- apply(d50_field_values, 1, mean)
+    d50_field_variances <- apply(d50_field_values, 1, var)
+    
+    # Extract the pixel values for each field in the D65 images
+    d65_field_values <- array(0, dim = c(nrow(d65_images), 100))
+    for (j in 1:100) {
+      d65_field_values[,j] <- as.array(d65_images[ColorChecker_fields[[i]],,channel,j])
+    }
+    d65_field_means <- apply(d65_field_values, 1, mean)
+    d65_field_variances <- apply(d65_field_values, 1, var)
+    
+    # Combine the data for the D50 and D65 fields
+    field_data <- data.frame(field = rep(field_name, nrow(d50_images)),
+                             channel = rep(channel, nrow(d50_images)),
+                             D50_mean = d50_field_means,
+                             D50_variance = d50_field_variances,
+                             D65_mean = d65_field_means,
+                             D65_variance = d65_field_variances)
+    
+    # Append the data for this field to the overall colorchecker_data dataframe
+    colorchecker_data <- bind_rows(colorchecker_data, field_data)
+  }
+}
+```
+    Compute the mean and variance of the pixel values for each field and each light source:
+
+```R
+
+colorchecker_means <- colorchecker_data %>% 
+  pivot_longer(cols = c("D50_mean", "D65_mean"), names_to = "light_source", values_to = "mean") %>% 
+  group_by(field, channel, light_source) %>% 
+  summarise(mean = mean(mean), .groups = "drop")
+
+colorchecker_variances <- colorchecker_data %>% 
+  pivot_longer(cols = c("D50_variance", "D65_variance"), names_to = "light_source", values_to = "variance") %>% 
+  group_by(field, channel, light_source) %>% 
+  summarise(variance = mean(variance), .groups = "drop")
+```
+    Compute the chromaticity coordinates for each field and each light source:
+
+```R
+
+colorchecker_chromatics <- colorchecker_means %>% 
+  left_join(colorchecker_variances, by = c("field", "channel", "light_source")) %>% 
+  mutate(chromaticity = XYZ_to_xyY(RGB_to_XYZ(mean, XYZ_D50), XYZ_D50)) %>% 
+```
