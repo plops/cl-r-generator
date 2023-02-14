@@ -47,8 +47,8 @@
 				     :|pygments_lexer| "r"
 				     :|version| 4.1.3
 				    )
-		 :|nbformat| 4
-		 :|nbformat_minor| 2))))
+		  :|nbformat| 4
+		  :|nbformat_minor| 2))))
     #+nil
     (sb-ext:run-program "/usr/bin/python3" `("-mjson.tool" ,nb-file))
     (sb-ext:run-program "/usr/bin/jq" `("-M" "." ,tmp)
