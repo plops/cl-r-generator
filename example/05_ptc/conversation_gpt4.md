@@ -92,11 +92,11 @@ To analyze the set of 30 gray images, fit a sigmoid function to the
 edge, and estimate the conversion gain, you'll need to follow these
 steps:
 
- 1   Load the necessary libraries
- 2   Read the image files
- 3   Fit a sigmoid function to the edge of each image
- 4   Estimate the conversion gain using the quasi-Poisson noise model
- 5   Plot the PTC curve
+ 1.   Load the necessary libraries
+ 2.   Read the image files
+ 3.   Fit a sigmoid function to the edge of each image
+ 4.   Estimate the conversion gain using the quasi-Poisson noise model
+ 5.   Plot the PTC curve
 
 Here's a script in R to help you accomplish this task:
 
@@ -187,11 +187,15 @@ To perform color calibration using the ColorChecker with 24 fields
 illuminated by D50 and D65 light sources, you'll need to follow these
 steps:
 
-1    Load the necessary libraries
-2    Read the image files for both sequences
-3    Convert the camera signal to detected photoelectrons using the known dark offset and conversion gain for each color channel
-4    Extract the color values for each of the 24 patches from the ColorChecker images
-5    Perform color calibration using linear regression to map the measured colors to the known reference values for the ColorChecker under D50 and D65 illumination
+1.    Load the necessary libraries
+2.    Read the image files for both sequences
+3.    Convert the camera signal to detected photoelectrons using the
+      known dark offset and conversion gain for each color channel
+4.    Extract the color values for each of the 24 patches from the
+      ColorChecker images
+5.    Perform color calibration using linear regression to map the
+      measured colors to the known reference values for the
+      ColorChecker under D50 and D65 illumination
 
 Here's a script in R to help you accomplish this task:
 
