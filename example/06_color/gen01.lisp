@@ -19,34 +19,38 @@
 	(incf show-counter))))
   (write-source (format nil "~a/source/run01" *path*)
 		`(do0
+		  #+nil (do0 (install.packages (string "colorscience"))
+		       (install.packages (string "ggplot2")))
 		  (do0
 		   (library colorscience)
-		   (library ggplot))
+		   (library ggplot2))
 		  (comments "load illuminant data and observer data")
-		  (setf d65_data colorscience--illuminantD65
-			cie1931_data colorscience--ciexyz31
+		  (setf d65_data "colorscience::illuminantD65"
+			cie1931_data "colorscience::ciexyz31"
 			)
 		  
 		  ,@(loop for e in `(wavelength
 				     x y z)
-			  and e-i from 0
+			  and e-i from 1
 			  collect
 			  `(setf 
 			    ,e
 			    (aref cie1931_data "" ,e-i)))
 		  (comments "combine illuminant and chromaticity into single data frame")
-		  (setf combined_data (data.frame :Wavelength wavelength
-						  :X x
-						  :Y y
-						  :Z z)
-			d65_data_merged (merge combined_data
-					       d65_data
-					       :by.x (string "Wavelength")
-					       :by.y (string "wlnm")
-					       :all.x TRUE)
-			(aref d65_data_merged$intensity (is.na d65_data_merged$intensity)) 0)
-
 		  (do0
+		   (setf combined_data (data.frame :Wavelength wavelength
+						   :X x
+						   :Y y
+						   :Z z
+						   ))
+		        (setf d65_data_merged (merge combined_data
+						     d65_data
+						     :by.x (string "Wavelength")
+						     :by.y (string "wlnm")
+						     :all.x TRUE))
+		        (setf (aref d65_data_merged$intensity (is.na d65_data_merged$intensity)) 0))
+
+		  #+nil (do0
 		   (comments "plot illuminant and chromaticity")
 		   ,(show "input"
 			  `(+
