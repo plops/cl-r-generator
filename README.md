@@ -1,70 +1,37 @@
-# cl-r-generator
+## Primary Purpose
 
-A Common Lisp library for generating R code from Lisp s-expressions.
+**cl-r-generator is a Common Lisp code generator that translates Lisp S-expressions into R programming language code.** It allows developers to write R code using Lisp syntax, which is then transformed into valid R scripts.  
 
-## Overview
+## Main Functions
 
-`cl-r-generator` is a code generation tool that allows you to write R statistical computing code using Common Lisp's s-expression syntax. The library transpiles Lisp forms into R code, making it easier to programmatically generate R scripts and Jupyter notebooks.  
+The codebase contains three primary top-level functions:
 
-## Features
+1. **`emit-r`** - The core code generation function that recursively translates Lisp expressions into R code  
 
-- **R Code Generation**: Convert Lisp s-expressions to R code with the `emit-r` function
-- **Jupyter Notebook Support**: Generate R-based Jupyter notebooks programmatically with `write-notebook`
-- **Source File Management**: Automatically write R source files with hash-based change detection to avoid unnecessary rewrites
-- **Rich Syntax Support**: Comprehensive mapping of R operators and constructs including:
-  - Assignment operators (`<-`, `=`, `->`)
-  - Mathematical operators (`+`, `-`, `*`, `/`, `^`)
-  - R-specific operators (`%*%`, `%x%`, `%%`, `%/%`, `%o%`, `%in%`)
-  - Control flow (`if`, `for`, `while`, `cond`)
-  - Function definitions with lambda lists
-  - Data access (`$`, `aref`)  
+2. **`write-source`** - Writes generated R code to a file with hash-based change detection to avoid unnecessary rewrites  
 
-## Installation
+3. **`write-notebook`** - Generates Jupyter notebooks with R cells from Lisp code  
 
-### R Installation (Fedora)  
+## Core Functionality
 
-### Common Lisp Setup
+The `emit-r` function supports extensive R language constructs including:
 
-Load the library using Quicklisp:
+- **Assignment operators**: `<-`, `->`, `=`, `setf`  
+- **R-specific operators**: `%*%` (matrix multiplication), `%in%`, `%o%`, `%x%`, `%%`, `%/%`  
+- **Data access**: `$` for accessing data frame columns, `aref` for array indexing  
+- **Control flow**: `if`, `cond`, `for`, `while`, `when`, `unless`  
+- **Function definitions**: `lambda`, `defun` with support for keyword parameters  
+- **Formula operator**: `~` for R model formulas  
+- **Function calls**: Standard function call syntax with positional and keyword arguments  
 
-```lisp
-(ql:quickload "cl-r-generator")
-(in-package :cl-r-generator)
-```  
+## Structure
 
-## Usage
+The codebase is minimal and focused:
+- **Single main module**: `rlang.lisp` containing all code generation logic
+- **Examples directory**: Contains practical examples demonstrating GAM (Generalized Additive Models) analysis  
+- **Helper functionality**: Includes utilities for printing floating-point numbers with sufficient precision  
 
-### Important: Readtable Configuration
+## Notes
 
-The library requires an inverted readtable for correct symbol and filename case handling:  
-
-### Generating R Source Files
-
-Use `write-source` to generate R script files from Lisp code:  
-
-### Example Usage
-
-The library excels at generating statistical analysis code, particularly for Generalized Additive Models (GAMs):  
-
-### Creating Jupyter Notebooks
-
-Generate R-based Jupyter notebooks with markdown and code cells:  
-
-## Examples
-
-The repository includes several examples demonstrating different use cases:
-
-- `example/01_gam/` - Generalized Additive Models analysis
-- `example/03_thinplatespline/` - Thin plate spline demonstrations
-- `example/04_lidar/` - LIDAR data analysis
-- `example/05_ptc/` - PTC examples
-- `example/06_color/` - Color-related computations
-
-## R Language References
-
-The implementation follows these R language specifications:  
-
-## Assignment Operator Notes
-
-The library consistently uses the `<-` operator for assignment in generated R code:  
+The project uses an inverted readtable case to handle R's case-sensitive naming conventions properly. 
 
